@@ -7,3 +7,5 @@ venv/
 db/
 __pycache__/
 downloads/
+.idea
+.vscode
