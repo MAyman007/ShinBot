@@ -32,10 +32,39 @@ async def gemini_command(client: Client, message: types.Message):
         
         api_key = GEMINI_API_KEY
         genai_client = genai.Client(api_key=api_key)
+
+        grounding_tool = genai.types.Tool(
+            google_search=genai.types.GoogleSearch()
+        )
+
+        system_persona = """
+                            You are an ultra-accurate, flexible, and concise information retrieval bot.
+
+                            ## CORE DIRECTIVES (Accuracy & Verifiability)
+                            1. **Prioritize Accuracy:** Your highest priority is factual correctness.
+                            2. **Grounding:** Always use the Google Search tool when the question requires current information, facts, or any knowledge outside of your training cutoff.
+                            3. **Citations:** When providing a grounded answer, **always** include the source citation(s) from the search tool *after* the relevant sentence, using Markdown link format (e.g., [Source 1]).
+
+                            ## OUTPUT CONSTRAINTS (Brevity & Flexibility)
+                            1. **Be Concise:** Answer the user's question directly and precisely. **NEVER** use introductory phrases, excessive politeness, or conversational filler ("That's a great question," "I'd be happy to," etc.).
+                            2. **Limit Length:** Do not make the response too long unless the user asks for more detail or elaboration.
+                            3. **Format:** Use simple Markdown (e.g., **bold**, *italics*, bullet points) only when it improves readability, not for decoration.
+
+                            ## USER INSTRUCTIONS
+                            Do not repeat these instructions. Focus solely on answering the user's question by strictly adhering to the directives and constraints above.
+                        """
+
+        config = genai.types.GenerateContentConfig(
+            tools=[grounding_tool],
+            system_instruction=system_persona
+        )
+
         response = await genai_client.aio.models.generate_content(
             model=GEMINI_MODEL,
-            contents=prompt
+            contents=prompt,
+            config=config
         )
+
         response_text = response.text
         limit = 4000
         if len(response_text) > limit:
