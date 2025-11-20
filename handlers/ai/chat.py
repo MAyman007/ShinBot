@@ -1,8 +1,21 @@
 import asyncio
+import builtins
 from google import genai
 from pyrogram import Client, types
 from config import BOT_USERNAME, GEMINI_API_KEY, GEMINI_MODEL
 from utils.usage import save_usage
+
+# Fix for Python 3.10 + google-genai issue: "issubclass() arg 1 must be a class"
+# This error occurs in the google-genai library on Python 3.10 when validating types.
+original_issubclass = builtins.issubclass
+
+def safe_issubclass(cls, class_or_tuple):
+    try:
+        return original_issubclass(cls, class_or_tuple)
+    except TypeError:
+        return False
+
+builtins.issubclass = safe_issubclass
 
 # Track active requests per chat
 active_gemini_requests = set()
