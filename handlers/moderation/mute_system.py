@@ -7,7 +7,7 @@ from pyrogram import Client, types
 from pyrogram.errors import UserAdminInvalid
 from pyrogram.enums import ChatMembersFilter
 from utils.usage import save_usage
-from utils.decorators import admin_only, protect_admins
+from utils.decorators import admin_only, protect_admins, require_permission
 from utils.helpers import create_pagination_keyboard, extract_user_and_reason, split_text_into_pages
 
 logger = logging.getLogger(__name__)
@@ -156,7 +156,7 @@ async def is_user_muted(client: Client, chat_id: int, user_id: int) -> bool:
 # ---------------------------
 # Mute command
 # ---------------------------
-@admin_only
+@require_permission("can_restrict_members")
 @protect_admins
 async def mute_command(client: Client, message: types.Message):
     chat = message.chat
@@ -281,7 +281,7 @@ async def mute_command(client: Client, message: types.Message):
 # ---------------------------
 # Unmute command
 # ---------------------------
-@admin_only
+@require_permission("can_restrict_members")
 async def unmute_command(client: Client, message: types.Message):
     chat = message.chat
     await save_usage(chat, "unmute")

@@ -137,3 +137,63 @@ def protect_admins(func):
         return await func(client, message)
 
     return wrapper
+
+def require_permission(permission: str):
+    """Decorator to check if the user has a specific admin permission."""
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(client, message: Message):
+            chat = message.chat
+            if chat.type.name.lower() == "private":
+                return await func(client, message)
+
+            # Check bot permissions first
+            try:
+                bot_member = await client.get_chat_member(chat.id, "me")
+                if bot_member.status not in [ChatMemberStatus.OWNER, ChatMemberStatus.ADMINISTRATOR]:
+                    await message.reply("❌ I need administrator permissions to execute admin commands.")
+                    return
+            except Exception as e:
+                logger.error(f"Could not check bot admin status: {e}")
+                await message.reply("❌ Unable to verify bot permissions.")
+                return
+
+            user_id = message.from_user.id
+            try:
+                member = await client.get_chat_member(chat.id, user_id)
+                
+                if member.status == ChatMemberStatus.OWNER:
+                    return await func(client, message)
+                
+                if member.status == ChatMemberStatus.ADMINISTRATOR:
+                    if member.privileges and getattr(member.privileges, permission, False):
+                        return await func(client, message)
+                    else:
+                        await message.reply(f"❌ You need the `{permission}` permission to use this command.")
+                        return
+                
+                await message.reply("❌ This command is only available to administrators.")
+                
+            except UserAdminInvalid:
+                await message.reply("❌ Unable to verify your permissions.")
+            except Exception as e:
+                logger.error(f"Error checking permission {permission}: {e}")
+                # Fallback: check admin list
+                try:
+                    admins = await client.get_chat_administrators(chat.id)
+                    for admin in admins:
+                        if admin.user.id == user_id:
+                            if admin.status == ChatMemberStatus.OWNER:
+                                return await func(client, message)
+                            if admin.privileges and getattr(admin.privileges, permission, False):
+                                return await func(client, message)
+                            else:
+                                await message.reply(f"❌ You need the `{permission}` permission to use this command.")
+                                return
+                    await message.reply("❌ This command is only available to administrators.")
+                except Exception as e2:
+                    logger.error(f"Fallback permission check failed: {e2}")
+                    await message.reply("❌ An error occurred while checking permissions.")
+                    
+        return wrapper
+    return decorator

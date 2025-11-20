@@ -3,7 +3,7 @@ from pyrogram import Client
 from pyrogram.types import Message
 from pyrogram.errors import UserNotParticipant, ChatAdminRequired, UserAdminInvalid
 from pyrogram.enums import ChatMembersFilter
-from utils.decorators import admin_only, protect_admins
+from utils.decorators import admin_only, protect_admins, require_permission
 from utils.helpers import create_pagination_keyboard, extract_user_and_reason, split_text_into_pages
 from utils.usage import save_usage
 
@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 pagination_data = {}
 
-@admin_only
+@require_permission("can_restrict_members")
 @protect_admins
 async def ban_user(client: Client, message: Message):
     """Ban a user from the chat"""
@@ -73,7 +73,7 @@ async def ban_user(client: Client, message: Message):
         await message.reply(f"❌ Error banning user: {str(e)}")
         logger.error(f"Error in ban command: {e}")
 
-@admin_only
+@require_permission("can_restrict_members")
 async def unban_user(client: Client, message: Message):
     """Unban a user from the chat"""
     chat = message.chat
