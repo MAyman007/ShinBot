@@ -50,7 +50,7 @@ COMMAND_CATEGORIES = {
         "commands": {
             "/timer": "Set yourself a timer",
             "/timerdel": "Delete a timer",
-            "/timerslist": "Get a list of timers set in this chat"
+            "/timers": "Get a list of timers set in this chat"
         }
     },
     "games": {

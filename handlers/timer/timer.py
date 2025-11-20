@@ -157,7 +157,7 @@ async def list_timers_command(client: Client, message: types.Message):
     """Display active timers in the chat with detailed information."""
     chat = message.chat
     sender = message.from_user
-    await save_usage(chat, "timerslist")
+    await save_usage(chat, "timers")
 
     # Get all timers for this chat
     now = datetime.datetime.now()
@@ -218,10 +218,7 @@ async def list_timers_command(client: Client, message: types.Message):
         # Try to get user info
         try:
             timer_user = await client.get_users(user_id)
-            if timer_user.username:
-                user_display = f"{timer_user.username}"
-            else:
-                user_display = f"{timer_user.first_name}"
+            user_display = timer_user.mention
         except:
             user_display = f"User {user_id}"
         
@@ -244,7 +241,7 @@ async def list_timers_command(client: Client, message: types.Message):
         await message.reply(pages[0])
     else:
         # Multiple pages, use pagination
-        callback_prefix = f"timerslist_{chat.id}"
+        callback_prefix = f"timers_{chat.id}"
         
         # Store pagination data
         timer_pagination_data[callback_prefix] = {
@@ -366,10 +363,7 @@ async def remove_timer_command(client: Client, message: types.Message):
         # Try to get user info
         try:
             timer_user = await client.get_users(user_id)
-            if timer_user.username:
-                user_display = f"{timer_user.username}"
-            else:
-                user_display = f"{timer_user.first_name}"
+            user_display = timer_user.mention
         except:
             user_display = f"User {user_id}"
         

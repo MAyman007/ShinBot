@@ -36,7 +36,7 @@ async def button_click_handler(client: Client, callback_query):
         return
     
     # Handle timer pagination callbacks
-    if data.startswith("timerslist_") or data.startswith("timerdel_"):
+    if data.startswith("timers_") or data.startswith("timerdel_"):
         await handlers.handle_timer_pagination(client, callback_query)
         return
     

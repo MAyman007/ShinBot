@@ -31,7 +31,7 @@ def register_handlers(client: Client):
     client.add_handler(MessageHandler(handlers.calc_command, filters.command("calc")))
     client.add_handler(MessageHandler(handlers.groupinfo_command, filters.command("groupinfo")))
     client.add_handler(MessageHandler(handlers.timer_command, filters.command("timer")))
-    client.add_handler(MessageHandler(handlers.list_timers_command, filters.command("timerslist")))
+    client.add_handler(MessageHandler(handlers.list_timers_command, filters.command("timers")))
     client.add_handler(MessageHandler(handlers.remove_timer_command, filters.command("timerdel")))
     client.add_handler(MessageHandler(handlers.reverse_command, filters.command("reverse")))
     client.add_handler(MessageHandler(handlers.slot_command, filters.command("slot")))
@@ -62,7 +62,7 @@ def register_handlers(client: Client):
     all_commands = [
         "start", "help", "mute", "unmute", "mutelist", "lock", "unlock", "joindate", "usagedata", "character", "anime","manga", "aghpb",
         "echo", "ping", "search", "feedback", "calc", "groupinfo", "pfp", "chatpfp", "chatid", "timer",
-        "timerslist", "timerdel", "reverse", "slot", "coinflip", "geekjoke", "dadjoke", "tictactoe",
+        "timers", "timerdel", "reverse", "slot", "coinflip", "geekjoke", "dadjoke", "tictactoe",
         "dog", "cat", "affirmation", "advice", "choose", "rps", "yt", "warn", "warndel", "warns",
         "ban", "unban", "banslist", "kick", "mute", "unmute", "promote"
     ]
