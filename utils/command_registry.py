@@ -12,7 +12,7 @@ def register_handlers(client: Client):
     client.add_handler(MessageHandler(handlers.help_command, filters.command("help")))
     client.add_handler(MessageHandler(handlers.mute_command, filters.command("mute")))
     client.add_handler(MessageHandler(handlers.unmute_command, filters.command("unmute")))
-    client.add_handler(MessageHandler(handlers.mutelist_command, filters.command("mutelist")))
+    client.add_handler(MessageHandler(handlers.mutes_command, filters.command("mutes")))
     client.add_handler(MessageHandler(handlers.lock_command, filters.command("lock")))
     client.add_handler(MessageHandler(handlers.unlock_command, filters.command("unlock")))
     client.add_handler(MessageHandler(handlers.list_join_dates, filters.command("joindate")))
@@ -47,8 +47,7 @@ def register_handlers(client: Client):
     client.add_handler(MessageHandler(handlers.advice_command, filters.command("advice")))
     client.add_handler(MessageHandler(handlers.warn_command, filters.command("warn")))
     client.add_handler(MessageHandler(handlers.warndel_command, filters.command("warndel")))
-    client.add_handler(MessageHandler(handlers.warnsuser_command, filters.command("warnsuser")))
-    client.add_handler(MessageHandler(handlers.warnslist_command, filters.command("warnslist")))
+    client.add_handler(MessageHandler(handlers.warns_command, filters.command("warns")))
     client.add_handler(MessageHandler(handlers.ban_user, filters.command("ban")))
     client.add_handler(MessageHandler(handlers.unban_user, filters.command("unban")))
     client.add_handler(MessageHandler(handlers.banslist_command, filters.command("banslist")))
@@ -64,8 +63,8 @@ def register_handlers(client: Client):
         "start", "help", "mute", "unmute", "mutelist", "lock", "unlock", "joindate", "usagedata", "character", "anime","manga", "aghpb",
         "echo", "ping", "search", "feedback", "calc", "groupinfo", "pfp", "chatpfp", "chatid", "timer",
         "timerslist", "timerdel", "reverse", "slot", "coinflip", "geekjoke", "dadjoke", "tictactoe",
-        "dog", "cat", "affirmation", "advice", "choose", "rps", "yt", "warn", "warndel", "warnsuser",
-        "warnslist", "ban", "unban", "banslist", "kick", "mute", "unmute", "promote"
+        "dog", "cat", "affirmation", "advice", "choose", "rps", "yt", "warn", "warndel", "warns",
+        "ban", "unban", "banslist", "kick", "mute", "unmute", "promote"
     ]
 
     # Add conditional commands to the list

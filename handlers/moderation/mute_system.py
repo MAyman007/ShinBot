@@ -12,7 +12,7 @@ from utils.helpers import create_pagination_keyboard, extract_user_and_reason, s
 
 logger = logging.getLogger(__name__)
 
-# Assume pagination_data is defined globally, similar to your warnslist implementation
+# Assume pagination_data is defined globally, similar to your warns implementation
 pagination_data = {}
 
 async def init_mute_db():
@@ -321,13 +321,13 @@ async def unmute_command(client: Client, message: types.Message):
 # List all muted members command
 # ---------------------------
 @admin_only
-async def mutelist_command(client: Client, message: types.Message):
+async def mutes_command(client: Client, message: types.Message):
     """Lists all currently muted members in the chat."""
     chat = message.chat
     sender = message.from_user
     
-    logger.info(f"Muteslist command called by user {sender.id} in chat {chat.id}")
-    await save_usage(chat, "muteslist")
+    logger.info(f"Mutes command called by user {sender.id} in chat {chat.id}")
+    await save_usage(chat, "mutes")
     
     try:
         # Step 1: Fetch mute reasons and admin info from your database first
@@ -362,7 +362,20 @@ async def mutelist_command(client: Client, message: types.Message):
             
             # Format the expiration date or show as permanent
             if member.until_date:
-                duration_str = f"Expires on {member.until_date.strftime('%Y-%m-%d %H:%M')} UTC"
+                remaining = member.until_date - datetime.now()
+                if remaining.total_seconds() > 0:
+                    days = remaining.days
+                    hours = remaining.seconds // 3600
+                    minutes = (remaining.seconds % 3600) // 60
+                    
+                    parts = []
+                    if days > 0: parts.append(f"{days}d")
+                    if hours > 0: parts.append(f"{hours}h")
+                    if minutes > 0: parts.append(f"{minutes}m")
+                    
+                    duration_str = f"{' '.join(parts) or '<1m'} remaining"
+                else:
+                    duration_str = "Expiring..."
             else:
                 duration_str = "Permanent"
             
@@ -383,14 +396,13 @@ async def mutelist_command(client: Client, message: types.Message):
             lines.append(f"  - **Reason:** {reason_str}")
             lines.append(f"  - **Muted by:** {admin_name_str}\n") # Add a newline for better spacing
 
-        # Step 4: Handle pagination (reusing your existing logic)
-        # Make sure you have the 'split_text_into_pages' helper function available
+        # Step 4: Handle pagination
         pages = await split_text_into_pages(lines)
         
         if len(pages) == 1:
             await message.reply(pages[0], disable_web_page_preview=True)
         else:
-            callback_prefix = f"mutelist_{chat.id}"
+            callback_prefix = f"mutes_{chat.id}"
             
             pagination_data[callback_prefix] = {
                 'pages': pages,
@@ -398,22 +410,19 @@ async def mutelist_command(client: Client, message: types.Message):
                 'user_id': sender.id # Store who requested it
             }
             
-            # Make sure you have the 'create_pagination_keyboard' helper function
             keyboard = await create_pagination_keyboard(1, len(pages), callback_prefix)
             await message.reply(pages[0], reply_markup=keyboard, disable_web_page_preview=True)
             
     except Exception as e:
-        logger.error(f"Error in mutelist_command for chat {chat.id}: {e}")
+        logger.error(f"Error in mutes_command for chat {chat.id}: {e}")
         await message.reply(f"❌ An error occurred while fetching the mute list: {str(e)}")
 
 
 # ---------------------------
-# Pagination callback handler for mutelist
+# Pagination callback handler for mutes
 # ---------------------------
 async def handle_mutes_pagination(client: Client, callback_query: types.CallbackQuery):
-    """Handle pagination callbacks for the mutelist command."""
-    # This function can reuse the exact same logic as your 'handle_warns_pagination'
-    # Just ensure it's registered to handle callbacks starting with "mutelist_"
+    """Handle pagination callbacks for the mutes command."""
     try:
         data = callback_query.data
         parts = data.rsplit("_", 1)

@@ -92,11 +92,11 @@ async def warn_command(client: Client, message: types.Message):
         
         # Send confirmation message
         await message.reply(
-            f"⚠️ Warning issued to **{user.first_name}**\n\n"
+            f"⚠️ Warning issued to {user.mention}\n\n"
             f"**Warning ID:** #{warn_id}\n"
             f"**Reason:** {reason}\n"
             f"**Total warnings:** {total_warns}\n"
-            f"**Issued by:** {sender.first_name}"
+            f"**Issued by:** {sender.mention}"
         )
         
     except Exception as e:
@@ -118,7 +118,7 @@ async def warndel_command(client: Client, message: types.Message):
     # Extract warning ID from command
     args = message.text.split()
     if len(args) < 2:
-        await message.reply("Please provide a warning ID. Usage: `/warndel [ID]`\nSee warnings IDs from `/warnslist` or `/warnsuser @user`")
+        await message.reply("Please provide a warning ID. Usage: `/warndel [ID]`\nSee warnings IDs from `/warns` or `/warns @user`")
         return
     
     try:
@@ -167,7 +167,7 @@ async def warndel_command(client: Client, message: types.Message):
             f"✅ Warning #{warn_id} has been deleted\n\n"
             f"User: {user_name}\n"
             f"Reason: {warning[1]}\n"
-            f"Deleted by: {sender.first_name}"
+            f"Deleted by: {sender.mention}"
         )
         
     except Exception as e:
@@ -175,23 +175,26 @@ async def warndel_command(client: Client, message: types.Message):
         logger.error(f"Error in warndel command: {e}")
 
 # ---------------------------
-# User warnings command
+# Warns command (Merged list & user)
 # ---------------------------
 @admin_only
-async def warnsuser_command(client: Client, message: types.Message):
+async def warns_command(client: Client, message: types.Message):
     chat = message.chat
-    await save_usage(chat, "warnsuser")
+    sender = message.from_user
     
-    # Get target user using helper function
+    await save_usage(chat, "warns")
+    
+    # Check if it's a specific user lookup (reply or mention)
     user, _ = await extract_user_and_reason(client, message)
     
-    if not user:
-        await message.reply(
-            "Please reply to a message or mention a user to view their warnings.\n"
-            "Usage: /warnsuser @username or /warnsuser user_id or reply to a message with /warnsuser"
-        )
-        return
-    
+    # If user is found, show their warnings (Old /warnsuser behavior)
+    if user:
+        await show_user_warnings(client, message, chat, user)
+    # If no user specified, show all warnings (Old /warnslist behavior)
+    else:
+        await show_all_warnings(client, message, chat, sender)
+
+async def show_user_warnings(client: Client, message: types.Message, chat, user):
     try:
         await init_warns_db(chat.id)
         table_name = f"warns_chat_{abs(chat.id)}"
@@ -210,7 +213,7 @@ async def warnsuser_command(client: Client, message: types.Message):
             return
         
         # Build response lines
-        lines = [f"**⚠️ Warnings for {user.first_name}**\n"]
+        lines = [f"**⚠️ Warnings for {user.mention}**\n"]
         
         for warn_id, warned_by, reason, warn_date in warnings:
             # Format date
@@ -223,7 +226,7 @@ async def warnsuser_command(client: Client, message: types.Message):
             # Get admin info
             try:
                 admin_user = await client.get_users(warned_by)
-                admin_name = admin_user.first_name
+                admin_name = admin_user.mention
             except:
                 admin_name = f"Admin {warned_by}"
             
@@ -243,7 +246,7 @@ async def warnsuser_command(client: Client, message: types.Message):
             await message.reply(pages[0])
         else:
             # Multiple pages, use pagination
-            callback_prefix = f"warnsuser_{chat.id}_{user.id}"
+            callback_prefix = f"warns_user_{chat.id}_{user.id}"
             
             # Store pagination data
             pagination_data[callback_prefix] = {
@@ -259,20 +262,9 @@ async def warnsuser_command(client: Client, message: types.Message):
         
     except Exception as e:
         await message.reply(f"An error occurred while fetching warnings: {str(e)}")
-        logger.error(f"Error in warnsuser command: {e}")
+        logger.error(f"Error in show_user_warnings: {e}")
 
-# ---------------------------
-# List all warnings command
-# ---------------------------
-@admin_only
-async def warnslist_command(client: Client, message: types.Message):
-    chat = message.chat
-    sender = message.from_user
-    
-    logger.info(f"Warnslist command called by user {sender.id} in chat {chat.id}")
-    
-    await save_usage(chat, "warnslist")
-    
+async def show_all_warnings(client: Client, message: types.Message, chat, sender):
     try:
         await init_warns_db(chat.id)
         table_name = f"warns_chat_{abs(chat.id)}"
@@ -304,7 +296,7 @@ async def warnslist_command(client: Client, message: types.Message):
             # Get user info
             try:
                 user = await client.get_users(user_id)
-                user_name = user.first_name
+                user_name = user.mention
             except:
                 user_name = f"User {user_id}"
             
@@ -321,7 +313,7 @@ async def warnslist_command(client: Client, message: types.Message):
                 # Get admin info
                 try:
                     admin_user = await client.get_users(warned_by)
-                    admin_name = admin_user.first_name
+                    admin_name = admin_user.mention
                 except:
                     admin_name = f"Admin {warned_by}"
                 
@@ -334,7 +326,7 @@ async def warnslist_command(client: Client, message: types.Message):
             lines.append("")
         
         lines.append(f"Total warnings: {len(warnings)}")
-        lines.append("Use /warnsuser @user for detailed user warnings")
+        lines.append("Use /warns @user for detailed user warnings")
         
         # Split into pages
         pages = await split_text_into_pages(lines)
@@ -344,7 +336,7 @@ async def warnslist_command(client: Client, message: types.Message):
             await message.reply(pages[0])
         else:
             # Multiple pages, use pagination
-            callback_prefix = f"warnslist_{chat.id}"
+            callback_prefix = f"warns_list_{chat.id}"
             
             # Store pagination data
             pagination_data[callback_prefix] = {
@@ -360,7 +352,7 @@ async def warnslist_command(client: Client, message: types.Message):
         
     except Exception as e:
         await message.reply(f"An error occurred while fetching warnings: {str(e)}")
-        logger.error(f"Error in warnslist command: {e}")
+        logger.error(f"Error in show_all_warnings: {e}")
 
 # ---------------------------
 # Pagination callback handler

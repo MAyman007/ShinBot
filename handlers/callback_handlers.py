@@ -26,8 +26,13 @@ async def button_click_handler(client: Client, callback_query):
         return
     
     # Handle warns pagination callbacks
-    if data.startswith("warnslist_") or data.startswith("warnsuser_"):
+    if data.startswith("warns_"):
         await handlers.handle_warns_pagination(client, callback_query)
+        return
+    
+    # Handle mutes pagination callbacks
+    if data.startswith("mutes_"):
+        await handlers.handle_mutes_pagination(client, callback_query)
         return
     
     # Handle timer pagination callbacks

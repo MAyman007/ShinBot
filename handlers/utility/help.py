@@ -13,16 +13,14 @@ COMMAND_CATEGORIES = {
             "/kick": "Kick a user",
             "/lock": "Lock chat (prevent all members from messaging)",
             "/mute": "Mute a user",
-            "/mutelist": "List all active mutes in chat",
-            "/muteuser": "Mute a user",
+            "/mutes": "List all active mutes in chat",
             "/promote": "Promote a user to admin",
             "/unban": "Unban a user",
             "/unlock": "Unlock chat (restore messaging permissions)",
             "/unmute": "Unmute a user",
             "/warn": "Issue a warning to a user",
             "/warndel": "Delete a warning by ID",
-            "/warnslist": "List all active warnings in chat",
-            "/warnsuser": "View warnings for a specific user"
+            "/warns": "View warnings (all or specific user)"
         }
     },
     "utility": {
