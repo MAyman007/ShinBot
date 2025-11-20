@@ -180,4 +180,6 @@ async def create_pagination_keyboard(current_page, total_pages, callback_prefix)
 
 def get_markdown_mention(user):
     """Return a markdown link to the user's profile."""
-    return f'<a href="tg://user?id={user.id}">{user.first_name}</a>'
+    try: md_mention = f"[{user.first_name}](https://t.me/{user.user_name})"
+    except: md_mention = f"[{user.first_name}](tg://user?id={user.id})"
+    return md_mention
