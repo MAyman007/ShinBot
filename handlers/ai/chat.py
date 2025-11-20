@@ -1,5 +1,5 @@
 import asyncio
-import google.generativeai as genai
+from google import genai
 from pyrogram import Client, types
 from config import BOT_USERNAME, GEMINI_API_KEY, GEMINI_MODEL
 from utils.usage import save_usage
@@ -31,9 +31,11 @@ async def gemini_command(client: Client, message: types.Message):
         waiting_msg = await message.reply("Wait a moment...")
         
         api_key = GEMINI_API_KEY
-        genai.configure(api_key=api_key)
-        model = genai.GenerativeModel(GEMINI_MODEL)
-        response = await model.generate_content_async(prompt)
+        genai_client = genai.Client(api_key=api_key)
+        response = await genai_client.aio.models.generate_content(
+            model=GEMINI_MODEL,
+            contents=prompt
+        )
         response_text = response.text
         limit = 4000
         if len(response_text) > limit:

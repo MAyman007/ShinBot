@@ -6,7 +6,7 @@ aiofiles
 python-dotenv
 praw
 tcp_latency
-google-generativeai
+google-genai
 PyYAML
 yt-dlp
 beautifulsoup4
