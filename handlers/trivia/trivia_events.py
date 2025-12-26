@@ -24,7 +24,7 @@ async def message_event(client: Client, message: types.Message):
         await message.reply("مثائو")
 
     # يالبوت
-    if "يالبوت" in text:
+    if "يالبوت" in text and text.count("يالبوت") > text.count("يالبوتة"):
         normal_responses = [
             "اكيد يسطا", "اكيد يبرو", "بدون شك", "يب اكيد", "طبعا", "اومال", "ايوه",
             "يب", "يب يب", "اتكل علي الله يعم", "مش فايقلك",
