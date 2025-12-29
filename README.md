@@ -28,7 +28,7 @@ This bot is packed with features to enhance your Telegram group experience. For 
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/mayman007/ShinBot.git
+    git clone https://github.com/MAymanKH/ShinBot.git
     cd ShinBot
     ```
 
@@ -73,4 +73,4 @@ Contributions are welcome! If you have a feature request, bug report, or want to
 
 ## Discord?
 
-If Discord is your primary app, and you're looking for a similar bot, then check out my other project **[Shinobi Bot](https://github.com/mayman007/ShinobiBot)**.
+If Discord is your primary app, and you're looking for a similar bot, then check out my other project **[Shinobi Bot](https://github.com/MAymanKH/ShinobiBot)**.
