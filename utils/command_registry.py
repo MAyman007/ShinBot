@@ -79,7 +79,6 @@ def register_handlers(client: Client):
 
     client.add_handler(
         MessageHandler(
-            handlers.message_event,
             filters.text & ~filters.command(all_commands)
         )
     )

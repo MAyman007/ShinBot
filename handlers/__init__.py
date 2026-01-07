@@ -11,7 +11,6 @@ from .moderation.mod_commands import *
 from .timer.timer import *
 from .timer.timer_scheduler import *
 from .trivia.trivia_commands import *
-from .trivia.trivia_events import *
 from .games.rps import *
 from .games.tictactoe import *
 from .games.slot import *
