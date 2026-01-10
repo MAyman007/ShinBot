@@ -231,7 +231,7 @@ async def echo_command(client: Client, message: types.Message):
         if len(text) > 4000:
             await message.reply("Message is too long! Please limit to 300 characters.")
             return
-        await message.reply(text)
+        await message.reply(f"{text}\n\n— Echoed from **{message.from_user.mention}**")
 
 # ---------------------------
 # Reverse Command Handler
