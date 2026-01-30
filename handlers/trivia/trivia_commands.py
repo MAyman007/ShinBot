@@ -3,7 +3,8 @@ import praw
 import aiohttp
 import asyncio
 import time
-from pyrogram import Client, types
+from pyrogram import Client, types, filters
+from pyrogram.handlers import MessageHandler
 from config import REDDIT_CLIENT_ID, REDDIT_CLIENT_SECRET, REDDIT_USER_AGENT
 from utils.usage import save_usage
 
@@ -325,3 +326,33 @@ async def choose_command(client: Client, message: types.Message):
         await response.edit_text(f"Okay, I choose: **{chosen_option}**")
     except Exception as e:
         await message.reply(f"Error while choosing: {str(e)}")
+
+# ---------------------------
+# Arabic Greeting Handlers
+# ---------------------------
+async def thbh_handler(client: Client, message: types.Message):
+    """Respond to morning greeting pattern (ثبح)."""
+    await message.reply_text("ثباحو")
+
+async def thbaho_handler(client: Client, message: types.Message):
+    """Respond to morning greeting pattern (ثباحو)."""
+    await message.reply_text("ثبح")
+
+async def mthao_handler(client: Client, message: types.Message):
+    """Respond to evening greeting pattern (مثائو)."""
+    await message.reply_text("مثا")
+
+async def mtha_handler(client: Client, message: types.Message):
+    """Respond to evening greeting pattern (مثا)."""
+    await message.reply_text("مثائو")
+
+
+# ---------------------------
+# Register Arabic Greeting Handlers
+# ---------------------------
+def register_trivia_handlers(client: Client):
+    """Register regex-based handlers for Arabic greetings."""
+    client.add_handler(MessageHandler(thbh_handler, filters.regex(r"ثبح")))
+    client.add_handler(MessageHandler(thbaho_handler, filters.regex(r"ثباحو")))
+    client.add_handler(MessageHandler(mthao_handler, filters.regex(r"مثائو")))
+    client.add_handler(MessageHandler(mtha_handler, filters.regex(r"مثا")))

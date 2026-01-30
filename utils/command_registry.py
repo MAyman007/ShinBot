@@ -3,6 +3,7 @@ from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 from config import ENABLE_GEMINI_COMMAND, ENABLE_IMAGINE_COMMAND, ENABLE_MEME_COMMAND
 import handlers as handlers
 from handlers.callback_handlers import button_click_handler
+from handlers.trivia.trivia_commands import register_trivia_handlers
 
 
 # Register command handlers
@@ -76,6 +77,9 @@ def register_handlers(client: Client):
         all_commands.append("gemini")
     if ENABLE_IMAGINE_COMMAND:
         all_commands.append("imagine")
+
+    # Register Arabic greeting handlers (before the generic text handler)
+    register_trivia_handlers(client)
 
     client.add_handler(
         MessageHandler(
