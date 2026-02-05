@@ -352,7 +352,7 @@ async def mtha_handler(client: Client, message: types.Message):
 # ---------------------------
 def register_trivia_handlers(client: Client):
     """Register regex-based handlers for Arabic greetings."""
-    client.add_handler(MessageHandler(thbh_handler, filters.regex(r"ثبح")))
-    client.add_handler(MessageHandler(thbaho_handler, filters.regex(r"ثباحو")))
-    client.add_handler(MessageHandler(mthao_handler, filters.regex(r"مثائو")))
-    client.add_handler(MessageHandler(mtha_handler, filters.regex(r"مثا")))
+    client.add_handler(MessageHandler(thbh_handler, filters.regex(r"(?:^|\s)ثبح(?:\s|$)")))
+    client.add_handler(MessageHandler(thbaho_handler, filters.regex(r"(?:^|\s)ثباحو(?:\s|$)")))
+    client.add_handler(MessageHandler(mthao_handler, filters.regex(r"(?:^|\s)مثائو(?:\s|$)")))
+    client.add_handler(MessageHandler(mtha_handler, filters.regex(r"(?:^|\s)مثا(?:\s|$)")))
