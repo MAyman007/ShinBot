@@ -32,7 +32,7 @@ COMMAND_CATEGORIES = {
             "/feedback": "Send feedback to developers",
             "/groupinfo": "Get group's detailed info",
             "/help": "This message",
-            "/hs": "Search for hadiths (Islamic)",
+            "/hs": "ابحث عن الأحاديث النبوية",
             "/joindate": "Get each member's join date in the group",
             "/pfp": "Get user's profile picture",
             "/ping": "Get bot's latency",
