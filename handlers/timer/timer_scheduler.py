@@ -46,10 +46,18 @@ async def get_chat_timer_table(connection, chat_id):
                 end_time TEXT,
                 reason TEXT,
                 message_id INTEGER,
-                status TEXT DEFAULT 'active'
+                status TEXT DEFAULT 'active',
+                message_link TEXT
             )
         """)
-        await connection.commit()
+        
+        # Add message_link column if it doesn't exist (for backward compatibility)
+        try:
+            await cursor.execute(f"ALTER TABLE {table_name} ADD COLUMN message_link TEXT")
+            await connection.commit()
+        except aiosqlite.OperationalError:
+            # Column already exists, ignore
+            pass
         
     return table_name
 
@@ -72,10 +80,10 @@ async def check_pending_timers(client):
             
             # Get all active timers for this chat
             async with connection.cursor() as cursor:
-                await cursor.execute(f"SELECT id, user_id, end_time, reason, message_id FROM {table_name} WHERE status = 'active'")
+                await cursor.execute(f"SELECT id, user_id, end_time, reason, message_id, message_link FROM {table_name} WHERE status = 'active'")
                 timers = await cursor.fetchall()
                 
-                for timer_id, user_id, end_time_str, reason, message_id in timers:
+                for timer_id, user_id, end_time_str, reason, message_id, message_link in timers:
                     end_time = datetime.datetime.fromisoformat(end_time_str)
                     now = datetime.datetime.now()
                     
@@ -213,12 +221,12 @@ async def get_timers(chat_id, include_inactive=False):
                 if include_inactive:
                     # Get all timers regardless of status
                     await cursor.execute(
-                        f"SELECT id, user_id, end_time, reason, message_id, status FROM {table_name}"
+                        f"SELECT id, user_id, end_time, reason, message_id, status, message_link FROM {table_name}"
                     )
                 else:
                     # Get only active timers
                     await cursor.execute(
-                        f"SELECT id, user_id, end_time, reason, message_id, status FROM {table_name} WHERE status = 'active'"
+                        f"SELECT id, user_id, end_time, reason, message_id, status, message_link FROM {table_name} WHERE status = 'active'"
                     )
                 
                 timers = await cursor.fetchall()

@@ -10,6 +10,28 @@ from utils.decorators import check_admin_permissions
 # Store pagination data temporarily
 timer_pagination_data = {}
 
+def generate_message_link(chat_id, message_id, chat_username=None):
+    """Generate a Telegram message link."""
+    if not message_id:
+        return None
+    
+    # For private chats (positive chat_id), we can't create a direct link
+    if chat_id > 0:
+        return None
+    
+    # For groups/supergroups with username
+    if chat_username:
+        return f"https://t.me/{chat_username}/{message_id}"
+    
+    # For private groups/supergroups (remove -100 prefix)
+    chat_id_str = str(chat_id)
+    if chat_id_str.startswith("-100"):
+        chat_id_str = chat_id_str[4:]
+    elif chat_id_str.startswith("-"):
+        chat_id_str = chat_id_str[1:]
+    
+    return f"https://t.me/c/{chat_id_str}/{message_id}"
+
 # ---------------------------
 # Timer Command Handler
 # ---------------------------
@@ -128,14 +150,18 @@ async def timer_command(client: Client, message: types.Message):
         user_id = sender.id
         message_id = message.id  # Get the ID of the command message
         
+        # Generate message link
+        chat_username = chat.username if hasattr(chat, 'username') else None
+        message_link = generate_message_link(chat.id, message_id, chat_username)
+        
         # Save the timer to chat-specific table in timers.db
         async with aiosqlite.connect("db/timers.db") as connection:
             table_name = await get_chat_timer_table(connection, chat.id)
             
             async with connection.cursor() as cursor:
                 await cursor.execute(
-                    f"INSERT INTO {table_name} (user_id, end_time, reason, message_id) VALUES (?, ?, ?, ?)",
-                    (user_id, end_time.isoformat(), reason, message_id)
+                    f"INSERT INTO {table_name} (user_id, end_time, reason, message_id, message_link) VALUES (?, ?, ?, ?, ?)",
+                    (user_id, end_time.isoformat(), reason, message_id, message_link)
                 )
                 timer_id = cursor.lastrowid
                 await connection.commit()
@@ -166,7 +192,7 @@ async def list_timers_command(client: Client, message: types.Message):
         
         async with connection.cursor() as cursor:
             await cursor.execute(
-                f"SELECT id, end_time, reason, user_id, status FROM {table_name}"
+                f"SELECT id, end_time, reason, user_id, status, message_link FROM {table_name}"
             )
             timers = await cursor.fetchall()
     
@@ -176,11 +202,11 @@ async def list_timers_command(client: Client, message: types.Message):
     
     # Filter active timers and calculate remaining time for sorting
     active_timer_data = []
-    for db_id, end_time_str, reason, user_id, status in timers:
+    for db_id, end_time_str, reason, user_id, status, message_link in timers:
         if status == 'active':
             end_time = datetime.datetime.fromisoformat(end_time_str)
             time_remaining = (end_time - now).total_seconds()
-            active_timer_data.append((db_id, end_time_str, reason, user_id, status, time_remaining))
+            active_timer_data.append((db_id, end_time_str, reason, user_id, status, time_remaining, message_link))
     
     # Sort timers by time remaining (ascending)
     active_timer_data.sort(key=lambda x: x[5])
@@ -189,7 +215,7 @@ async def list_timers_command(client: Client, message: types.Message):
     lines = ["**🔔 Active Timers:**\n"]
     active_timers = False
     
-    for db_id, end_time_str, reason, user_id, status, _ in active_timer_data:
+    for db_id, end_time_str, reason, user_id, status, _, message_link in active_timer_data:
         active_timers = True
         
         # Format time remaining for active timers only
@@ -222,11 +248,14 @@ async def list_timers_command(client: Client, message: types.Message):
         except:
             user_display = f"User {user_id}"
         
+        # Add message link if available
+        link_text = f"\n    - [Jump to message]({message_link})" if message_link else ""
+        
         # Add to list
         lines.append(
             f"**ID #{db_id}** ⏰ **{time_left}** remaining\n"
-            f"    👤 Set by: {user_display}\n"
-            f"    📝 Reason: {reason or 'No reason provided'}\n"
+            f"    - **Set by:** {user_display}\n"
+            f"    - **Reason:** {reason or 'No reason provided'}{link_text}\n"
         )
 
     if not active_timers:
@@ -283,7 +312,7 @@ async def remove_timer_command(client: Client, message: types.Message):
         
         async with connection.cursor() as cursor:
             await cursor.execute(
-                f"SELECT id, end_time, reason, user_id, status FROM {table_name}"
+                f"SELECT id, end_time, reason, user_id, status, message_link FROM {table_name}"
             )
             timers = await cursor.fetchall()
     
@@ -294,7 +323,7 @@ async def remove_timer_command(client: Client, message: types.Message):
     # If timer_id was provided, try to remove that specific timer
     if timer_id is not None:
         found = False
-        for db_id, end_time_str, reason, user_id, status in timers:
+        for db_id, end_time_str, reason, user_id, status, message_link in timers:
             if db_id == timer_id:
                 found = True
                 # Check if user has permission to remove this timer
@@ -322,19 +351,19 @@ async def remove_timer_command(client: Client, message: types.Message):
     
     # Filter timers and add remaining time for sorting
     removable_timers = []
-    for db_id, end_time_str, reason, user_id, status in timers:
+    for db_id, end_time_str, reason, user_id, status, message_link in timers:
         # Determine if this user can remove this timer
         can_remove = (sender.id == user_id or is_admin) and status == 'active'
         
         if can_remove:
             end_time = datetime.datetime.fromisoformat(end_time_str)
             time_remaining = (end_time - now).total_seconds()
-            removable_timers.append((db_id, end_time_str, reason, user_id, status, time_remaining))
+            removable_timers.append((db_id, end_time_str, reason, user_id, status, time_remaining, message_link))
     
     # Sort timers by time remaining (ascending)
     removable_timers.sort(key=lambda x: x[5])
     
-    for db_id, end_time_str, reason, user_id, status, _ in removable_timers:
+    for db_id, end_time_str, reason, user_id, status, _, message_link in removable_timers:
         active_timers = True
         
         # Format time remaining for active timers only
@@ -367,11 +396,14 @@ async def remove_timer_command(client: Client, message: types.Message):
         except:
             user_display = f"User {user_id}"
         
+        # Add message link if available
+        link_text = f"\n    - [Jump to message]({message_link})" if message_link else ""
+        
         # Add to list
         lines.append(
             f"**ID #{db_id}** ⏰ **{time_left}** remaining\n"
-            f"    👤 Set by: {user_display}\n"
-            f"    📝 Reason: {reason or 'No reason provided'}\n"
+            f"    - **Set by:** {user_display}\n"
+            f"    - **Reason:** {reason or 'No reason provided'}{link_text}\n"
         )
     
     if not active_timers:
